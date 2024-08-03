@@ -1,47 +1,21 @@
 import { useEffect, useRef, useState } from "react";
-import clsx from "clsx";
-import {
-  openModal,
-  handleReset,
-  handleStop,
-} from "../components/main/buttons-logic";
+import { Modal, Info, Buttons } from "../components/main/index";
 
 export default function MainPage() {
   const tempTask =
     "While eating at a restaurant is an enjoyable and convenient occasional";
 
-  const [time, setTime] = useState(0);
-  const [userInput, setUserInput] = useState([""]);
-  const [task, setTask] = useState(tempTask);
-  const [missCount, setMissCount] = useState(0);
-  const [isActive, setIsActive] = useState(true);
-  const inputRef = useRef(null);
-  const [result, setResult] = useState(0);
-  const [percentMiss, setPercentMiss] = useState(0);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showTime, setShowTime] = useState(0);
+  const [time, setTime] = useState(0); //timer
+  const [userInput, setUserInput] = useState([""]); //userInput
+  const [task, setTask] = useState(tempTask); // task
+  const [missCount, setMissCount] = useState(0); //Miss
+  const [isActive, setIsActive] = useState(true); // Active
+  const [result, setResult] = useState(0); // result
+  const [percentMiss, setPercentMiss] = useState(0); // percentMiss
+  const [isModalOpen, setIsModalOpen] = useState(false); //IsOpenModal
+  const inputRef = useRef(null); // zalupi
 
-  const openModal = () => {
-    if (isActive) {
-      isActive ? setIsActive(false) : setIsActive(true);
-      setShowTime(time);
-      setTime(0);
-      setIsModalOpen(true);
-      const timeInMinute = time / 60;
-      if (userInput.length !== 0) {
-        setResult(Math.round((userInput.length - missCount) / timeInMinute));
-        setPercentMiss(Math.round((missCount * 100) / userInput.length));
-      } else {
-        setResult(0);
-        setPercentMiss(0);
-      }
-    }
-
-    setMissCount(0);
-    setUserInput("");
-  };
-  const closeModal = () => setIsModalOpen(false);
-
+  //input
   const changeUserInput = (event) => {
     if (isActive) {
       const value = event.target.value;
@@ -56,6 +30,7 @@ export default function MainPage() {
     }
   };
 
+  //color symbol
   const getInputClass = (userInput, task) => {
     const chars = task.split("");
     return chars.map((char, index) => {
@@ -78,6 +53,7 @@ export default function MainPage() {
     });
   };
 
+  //timer
   useEffect(() => {
     let interval = null;
     if (isActive) {
@@ -90,6 +66,15 @@ export default function MainPage() {
     };
   }, [isActive]);
 
+  //button stop
+  const handleStop = () => {
+    isActive ? setIsActive(false) : setIsActive(true);
+    setTime(0);
+    setMissCount(0);
+    setUserInput("");
+  };
+
+  //button reset
   const handleReset = () => {
     if (isActive) {
       setTime(0);
@@ -98,13 +83,27 @@ export default function MainPage() {
     }
   };
 
-  const handleStop = () => {
-    isActive ? setIsActive(false) : setIsActive(true);
-    setTime(0);
-    setMissCount(0);
+  // button modal
+  const handelOpenModal = () => {
+    if (isActive) {
+      isActive ? setIsActive(false) : setIsActive(true);
+      setIsModalOpen(true);
+      const timeInMinute = time / 60;
+      if (userInput.length !== 0) {
+        setResult(Math.round((userInput.length - missCount) / timeInMinute));
+        setMissCount(Math.round((missCount * 100) / userInput.length));
+      } else {
+        setResult(0);
+        setMissCount(0);
+      }
+    }
+    setTime(time);
     setUserInput("");
   };
+  // button close Modal
+  const handleCloseModal = () => setIsModalOpen(false);
 
+  // 2 zalupi
   const handleKeyDown = (event) => {
     const badKeys = ["Backspace", "Delete", "Control"];
     if (badKeys.includes(event.key)) {
@@ -117,6 +116,7 @@ export default function MainPage() {
       inputRef.current.setSelectionRange(userInput.length, userInput.length);
     }
   };
+
   return (
     <div className="bg-neutral-800 min-h-screen flex flex-col items-center p-5">
       <Info
@@ -125,7 +125,7 @@ export default function MainPage() {
         userInput={userInput}
         task={task}
         getInputClass={getInputClass}
-      ></Info>
+      />
       <textarea
         className="w-[1000px] font-mono tracking-tight text-2xl/[50px] p-4 bg-neutral-800 text-zinc-300 rounded-lg h-80 resize-none border border-white"
         onChange={changeUserInput}
@@ -135,96 +135,20 @@ export default function MainPage() {
         ref={inputRef}
         value={userInput}
         getInputClass
-      ></textarea>
+      />
       <Buttons
-        handleReset={handleReset}
         isActive={isActive}
+        handleReset={handleReset}
         handleStop={handleStop}
-        openModal={openModal}
-      ></Buttons>
+        openModal={handelOpenModal}
+      />
       <Modal
-        onClose={closeModal}
+        onClose={handleCloseModal}
         isOpen={isModalOpen}
         result={result}
-        percentMiss={percentMiss}
-        showTime={showTime}
-      ></Modal>
-    </div>
-  );
-}
-
-function Modal({ isOpen, onClose, result, percentMiss, showTime }) {
-  if (!isOpen) return null;
-  return (
-    <div className="fixed inset-0 justify-center flex items-center z-50 shadow-lg bg-black bg-opacity-25">
-      <div className="bg-neutral-700 p-5 rounded-md max-w-lg relative">
-        <button
-          onClick={onClose}
-          className="absolute top-1 right-4 cursor-pointer text-zinc-200 hover:text-zinc-300 active:text-zinc-400"
-        >
-          x
-        </button>
-        <div className="mt-2">
-          <p className="text-zinc-200 text-xl/[25px] p-3 px-20 tracking-wide">
-            Correct SPM: {result}
-          </p>
-          <p className="text-zinc-200 text-xl/[25px] p-3 px-20 tracking-wide">
-            Miss: {percentMiss}%
-          </p>
-          <p className="text-zinc-200 text-xl/[25px] p-3 px-20 tracking-wide">
-            Time: {showTime}s
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Buttons({ handleReset, isActive, handleStop, openModal }) {
-  return (
-    <div>
-      <button
-        onClick={handleReset}
-        className={
-          isActive
-            ? "text-zinc-200 hover:text-zinc-300 active:text-zinc-400 text-2xl/[50px] p-3 px-36"
-            : "text-zinc-500 text-2xl/[50px] p-3 px-36"
-        }
-      >
-        reset
-      </button>
-      <button
-        onClick={handleStop}
-        className=" text-zinc-200 hover:text-zinc-300 active:text-zinc-400 text-2xl/[50px] p-3 px-36"
-      >
-        {isActive ? "stop" : "start"}
-      </button>
-      <button
-        onClick={openModal}
-        className={
-          isActive
-            ? "text-zinc-200 hover:text-zinc-300 active:text-zinc-400 text-2xl/[50px] p-3 px-36"
-            : "text-zinc-500 text-2xl/[50px] p-3 px-36"
-        }
-      >
-        result
-      </button>
-    </div>
-  );
-}
-
-function Info({ missCount, time, userInput, task, getInputClass }) {
-  return (
-    <div>
-      <p className="w-[800px] text-xl/[50px] font-mono tracking-tight text-zinc-500 ">
-        Miss: {missCount}
-      </p>
-      <p className="w-[800px] text-xl/[50px] font-mono tracking-tight text-zinc-500">
-        Time: {time}
-      </p>
-      <p className="w-[800px] text-2xl/[50px] tracking-tight p-4 text-zinc-200">
-        {getInputClass(userInput, task)}
-      </p>
+        missCount={missCount}
+        time={time}
+      />
     </div>
   );
 }
